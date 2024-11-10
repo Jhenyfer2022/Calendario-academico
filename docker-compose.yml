@@ -1,25 +1,37 @@
-version: '3.8'
-
 services:
-  db:
+  odoo18_web:
+    build: .
+    depends_on:
+      - odoo18_postgres
+    ports:
+      - "8071:8071"
+    volumes:
+      - odoo18_volumen:/var/lib/odoo
+      - ./config:/etc/odoo
+      - ./custom_addons:/mnt/extra-addons
+    environment:
+      - HOST=odoo18_postgres
+      - USER=odoo
+      - PASSWORD=odoo
+
+  odoo18_postgres:
     image: postgres:13
     environment:
       - POSTGRES_DB=postgres
-      - POSTGRES_USER=odoo
       - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
     volumes:
-      - odoo-db-data:/var/lib/postgresql/data
-
-  odoo:
-    build: .
-    depends_on:
-      - db
+      - odoo18_volumen_db:/var/lib/postgresql/data
+  pgadmin:
+    image: dpage/pgadmin4
     ports:
-      - "8069:8069"
+      - "8080:80"  # Expose pgAdmin on port 8080
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com  # Set default admin email
+      - PGADMIN_DEFAULT_PASSWORD=admin  # Set default admin password
     volumes:
-      - ./addons:/mnt/extra-addons
-      - ./filestore:/var/lib/odoo/filestore
-      - ./config/odoo.conf:/etc/odoo/odoo.conf
-
+      - pgadmin_data:/var/lib/pgadmin  # Persistent storage for pgAdmin
 volumes:
-  odoo-db-data:
+  odoo18_volumen:
+  odoo18_volumen_db:
+  pgadmin_data:  # Volume for pgAdmin to store data
